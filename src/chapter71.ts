@@ -19,8 +19,7 @@ export class Chapter71Simulator {
   
   // UI state
   private predictedDirection: 'left' | 'right' | 'none' | null = null;
-  private feedback: string = '';
-  private feedbackType: 'success' | 'error' | 'info' = 'info';
+  
   
   // Animation state
   private blockX: number = 150;
@@ -286,7 +285,6 @@ export class Chapter71Simulator {
 
   private clearPrediction() {
     this.predictedDirection = null;
-    this.feedback = '';
     document.querySelectorAll('.direction-btn').forEach(b => {
       b.classList.remove('selected', 'correct', 'incorrect');
     });

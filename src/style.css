@@ -33,12 +33,12 @@
   /* Typography */
   --font-mono: "IBM Plex Mono", Menlo, Consolas, "Liberation Mono", monospace;
   
-  --fs-h1: 2.5rem;
-  --fs-h2: 2rem;
-  --fs-h3: 1.5rem;
-  --fs-body: 1.125rem;
-  --fs-small: 0.875rem;
-  --fs-label: 1rem;
+  --fs-h1: clamp(2.25rem, 2.2vw + 1.5rem, 2.75rem);
+  --fs-h2: clamp(1.75rem, 1.6vw + 1rem, 2.25rem);
+  --fs-h3: clamp(1.25rem, 0.9vw + 0.9rem, 1.6rem);
+  --fs-body: clamp(1.05rem, 0.6vw + 0.9rem, 1.2rem);
+  --fs-small: clamp(0.95rem, 0.4vw + 0.7rem, 1rem);
+  --fs-label: clamp(1rem, 0.3vw + 0.9rem, 1.05rem);
   
   --lh-heading: 1.2;
   --lh-body: 1.55;
@@ -83,7 +83,7 @@ body {
 
 /* App Container */
 #app {
-  max-width: 1280px;
+  max-width: 1360px;
   margin: 0 auto;
 }
 
@@ -206,9 +206,9 @@ body {
 /* Chapter Title */
 .chapter-title {
   font-size: var(--fs-h2);
-  font-weight: 600;
+  font-weight: 700;
   line-height: var(--lh-heading);
-  margin-bottom: var(--space-1);
+  margin-bottom: var(--space-2);
 }
 
 .chapter-subtitle {
@@ -220,7 +220,7 @@ body {
 /* Two Column Layout */
 .simulator-layout {
   display: grid;
-  grid-template-columns: 1fr 400px;
+  grid-template-columns: 1.2fr 420px;
   gap: var(--space-4);
 }
 
@@ -228,6 +228,9 @@ body {
   .simulator-layout {
     grid-template-columns: 1fr;
   }
+  .canvas-area { min-height: 480px; padding: var(--space-3); }
+  .canvas-container { min-height: 420px; }
+  .chapter-selector { margin-bottom: var(--space-3); }
 }
 
 /* Canvas Area */
@@ -290,7 +293,7 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: var(--space-1);
-  font-size: var(--fs-small);
+  font-size: var(--fs-label);
   font-weight: 600;
 }
 
@@ -313,7 +316,7 @@ body {
 
 input[type="range"] {
   width: 100%;
-  height: 8px;
+  height: 10px;
   border-radius: 4px;
   background: var(--md-border);
   outline: none;
@@ -366,7 +369,7 @@ input[type="range"]:focus::-webkit-slider-thumb {
   font-size: var(--fs-label);
   font-weight: 700;
   text-transform: uppercase;
-  padding: 10px 16px;
+  padding: 12px 18px;
   border-radius: var(--radius-xl);
   border: 1px solid transparent;
   cursor: pointer;
@@ -415,7 +418,7 @@ input[type="range"]:focus::-webkit-slider-thumb {
 
 .direction-btn {
   font-family: var(--font-mono);
-  font-size: var(--fs-small);
+  font-size: var(--fs-label);
   font-weight: 700;
   text-transform: uppercase;
   padding: 12px;
@@ -506,7 +509,7 @@ input[type="range"]:focus::-webkit-slider-thumb {
 }
 
 .stat-value {
-  font-size: 1.75rem;
+  font-size: clamp(1.6rem, 1.2vw + 1.2rem, 2rem);
   font-weight: 700;
   color: var(--md-blue);
 }
