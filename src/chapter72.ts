@@ -529,11 +529,14 @@ export class Chapter72Simulator {
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Centers for force vectors
+  // Centers for force vectors
     const centerAX = blockAX + blockASize / 2;
     const centerAY = blockAY + blockASize / 2;
     const centerBX = blockBX + blockBSize / 2;
     const centerBY = blockBY + blockBSize / 2;
+  // Reserve block rectangles to avoid label overlap with blocks
+  this.labelRects.push({ x: blockAX - 6, y: blockAY - 6, w: blockASize + 12, h: blockASize + 12 });
+  this.labelRects.push({ x: blockBX - 6, y: blockBY - 6, w: blockBSize + 12, h: blockBSize + 12 });
 
     // Helper for arrow length
     const len = (val: number) => Math.max(80, Math.min(180, val * 2));
@@ -634,13 +637,16 @@ export class Chapter72Simulator {
     ctx.arc(pulleyX, pulleyY, pulleyRadius, -Math.PI / 2, 0);
     ctx.lineTo(pulleyX + pulleyRadius, blockBY);
     ctx.stroke();
-    ctx.setLineDash([]);
+  ctx.setLineDash([]);
     
     // Force vectors on A and B
-    const centerAX = blockAX + blockASize / 2;
+  const centerAX = blockAX + blockASize / 2;
     const centerAY = blockAY + blockASize / 2;
     const centerBX = blockBX + blockBSize / 2;
     const centerBY = blockBY + blockBSize / 2;
+  // Reserve for blocks
+  this.labelRects.push({ x: blockAX - 6, y: blockAY - 6, w: blockASize + 12, h: blockASize + 12 });
+  this.labelRects.push({ x: blockBX - 6, y: blockBY - 6, w: blockBSize + 12, h: blockBSize + 12 });
 
     const len = (val: number) => Math.max(80, Math.min(180, val * 2));
     const g = 9.8;
@@ -706,13 +712,16 @@ export class Chapter72Simulator {
     ctx.moveTo(blockAX + blockSize, blockY + blockSize / 2);
     ctx.lineTo(blockBX, blockY + blockSize / 2);
     ctx.stroke();
-    ctx.setLineDash([]);
+  ctx.setLineDash([]);
 
     // Centers and vectors on table
-    const centerAX = blockAX + blockSize / 2;
+  const centerAX = blockAX + blockSize / 2;
     const centerAY = blockY + blockSize / 2;
     const centerBX = blockBX + blockSize / 2;
     const centerBY = blockY + blockSize / 2;
+  // Reserve both blocks
+  this.labelRects.push({ x: blockAX - 6, y: blockY - 6, w: blockSize + 12, h: blockSize + 12 });
+  this.labelRects.push({ x: blockBX - 6, y: blockY - 6, w: blockSize + 12, h: blockSize + 12 });
 
     const g = 9.8;
     const len = (val: number) => Math.max(80, Math.min(160, val * 2));
@@ -776,6 +785,10 @@ export class Chapter72Simulator {
       if (labelPos === 'above') rectY -= 24; if (labelPos === 'below') rectY += 24;
       if (labelPos === 'left') rectX -= 24; if (labelPos === 'right') rectX += 24;
     }
+    // Clamp to canvas bounds
+    const pad = 8;
+    rectX = Math.max(pad, Math.min(this.canvas.width - rectW - pad, rectX));
+    rectY = Math.max(pad, Math.min(this.canvas.height - rectH - pad, rectY));
     this.labelRects.push({x: rectX, y: rectY, w: rectW, h: rectH});
 
     ctx.fillStyle = 'rgba(255,255,255,0.9)'; ctx.strokeStyle = color; ctx.lineWidth = 2;

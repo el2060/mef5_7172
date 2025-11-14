@@ -477,13 +477,15 @@ export class Chapter71Simulator {
     ctx.fillRect(this.blockX, blockY, blockSize, blockSize);
     ctx.strokeRect(this.blockX, blockY, blockSize, blockSize);
     
-    // Draw block label
+  // Draw block label
     ctx.fillStyle = '#FFFFFF';
     ctx.font = '700 20px "IBM Plex Mono"';
     ctx.textAlign = 'center';
     ctx.fillText(`${this.mass} kg`, this.blockX + blockSize / 2, blockY + blockSize / 2 + 7);
     
   // Draw force arrows
+  // Reserve block area so labels do not overlap the block
+  this.labelRects.push({ x: this.blockX - 6, y: blockY - 6, w: blockSize + 12, h: blockSize + 12 });
   this.drawForceArrows(this.blockX + blockSize / 2, blockY + blockSize / 2);
     
     // Draw info text
@@ -600,6 +602,10 @@ export class Chapter71Simulator {
       if (labelPos === 'left')  rectX -= 24;
       if (labelPos === 'right') rectX += 24;
     }
+    // Clamp to canvas bounds with padding
+    const pad = 8;
+    rectX = Math.max(pad, Math.min(this.canvas.width - rectW - pad, rectX));
+    rectY = Math.max(pad, Math.min(this.canvas.height - rectH - pad, rectY));
     this.labelRects.push({x: rectX, y: rectY, w: rectW, h: rectH});
 
     // Draw label background
