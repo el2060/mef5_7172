@@ -3,6 +3,7 @@ export class Chapter72Simulator {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private animationId: number | null = null;
+  private labelRects: Array<{x:number;y:number;w:number;h:number}> = [];
   
   // System type
   private systemType: 'pulley' | 'incline' | 'table' = 'pulley';
@@ -442,6 +443,8 @@ export class Chapter72Simulator {
     const ctx = this.ctx;
     const width = this.canvas.width;
     const height = this.canvas.height;
+    // Reset per-frame label rectangles for collision avoidance
+    this.labelRects = [];
     
     // Clear canvas
     ctx.clearRect(0, 0, width, height);
@@ -526,8 +529,25 @@ export class Chapter72Simulator {
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Tension badge
-    this.drawBadge(ctx, pulleyX - 90, pulleyY - 50, `T = ${this.tension.toFixed(1)} N`, '#FF6E6C');
+    // Centers for force vectors
+    const centerAX = blockAX + blockASize / 2;
+    const centerAY = blockAY + blockASize / 2;
+    const centerBX = blockBX + blockBSize / 2;
+    const centerBY = blockBY + blockBSize / 2;
+
+    // Helper for arrow length
+    const len = (val: number) => Math.max(80, Math.min(180, val * 2));
+    const g = 9.8;
+
+    // A: tension right, friction left
+    this.drawArrow(centerAX, centerAY, centerAX + len(this.tension), centerAY, '#20BBAA', `T = ${this.tension.toFixed(1)} N`, 'right');
+    const frictionA = this.friction * this.massA * g;
+    this.drawArrow(centerAX, centerAY, centerAX - len(frictionA), centerAY, '#FF6E6C', `Ff₁ = ${frictionA.toFixed(1)} N`, 'left');
+
+    // B: weight down, tension up
+    const weightB = this.massB * g;
+    this.drawArrow(centerBX, centerBY, centerBX, centerBY + len(weightB), '#FFE100', `W₂ = ${weightB.toFixed(1)} N`, 'below');
+    this.drawArrow(centerBX, centerBY, centerBX, centerBY - len(this.tension), '#20BBAA', `T`, 'above');
   }
 
   private drawInclineSystem(ctx: CanvasRenderingContext2D, width: number, height: number) {
@@ -615,6 +635,33 @@ export class Chapter72Simulator {
     ctx.lineTo(pulleyX + pulleyRadius, blockBY);
     ctx.stroke();
     ctx.setLineDash([]);
+    
+    // Force vectors on A and B
+    const centerAX = blockAX + blockASize / 2;
+    const centerAY = blockAY + blockASize / 2;
+    const centerBX = blockBX + blockBSize / 2;
+    const centerBY = blockBY + blockBSize / 2;
+
+    const len = (val: number) => Math.max(80, Math.min(180, val * 2));
+    const g = 9.8;
+
+    // Unit vector along slope (upslope)
+    const ux = Math.cos(angleRad);
+    const uy = -Math.sin(angleRad);
+
+    // Tension along rope on A (upslope)
+    this.drawArrow(centerAX, centerAY, centerAX + ux * len(this.tension), centerAY + uy * len(this.tension), '#20BBAA', 'T', 'right');
+
+    // Friction on A opposes motion (downslope if accel >= 0)
+    const normalA = this.massA * g * Math.cos(angleRad);
+    const frictionA = this.friction * normalA;
+    const dir = this.acceleration >= 0 ? -1 : 1; // -1 downslope when accel >= 0
+    this.drawArrow(centerAX, centerAY, centerAX + dir * ux * len(frictionA), centerAY + dir * uy * len(frictionA), '#FF6E6C', 'Ff₁', dir === -1 ? 'left' : 'right');
+
+    // B: weight down, tension up
+    const weightB = this.massB * g;
+    this.drawArrow(centerBX, centerBY, centerBX, centerBY + len(weightB), '#FFE100', `W₂ = ${weightB.toFixed(1)} N`, 'below');
+    this.drawArrow(centerBX, centerBY, centerBX, centerBY - len(this.tension), '#20BBAA', 'T', 'above');
   }
 
   private drawTableSystem(ctx: CanvasRenderingContext2D, width: number, height: number) {
@@ -660,28 +707,84 @@ export class Chapter72Simulator {
     ctx.lineTo(blockBX, blockY + blockSize / 2);
     ctx.stroke();
     ctx.setLineDash([]);
+
+    // Centers and vectors on table
+    const centerAX = blockAX + blockSize / 2;
+    const centerAY = blockY + blockSize / 2;
+    const centerBX = blockBX + blockSize / 2;
+    const centerBY = blockY + blockSize / 2;
+
+    const g = 9.8;
+    const len = (val: number) => Math.max(80, Math.min(160, val * 2));
+    const frictionA = this.friction * this.massA * g;
+    const frictionB = this.friction * this.massB * g;
+    this.drawArrow(centerAX, centerAY, centerAX - len(frictionA), centerAY, '#FF6E6C', 'Ff₁', 'left');
+    this.drawArrow(centerBX, centerBY, centerBX - len(frictionB), centerBY, '#FF6E6C', 'Ff₂', 'left');
+    this.drawArrow(centerAX, centerAY, centerAX + len(Math.abs(this.tension)), centerAY, '#20BBAA', 'T', 'right');
   }
 
-  private drawBadge(ctx: CanvasRenderingContext2D, x: number, y: number, text: string, color: string) {
-    ctx.font = '700 14px "IBM Plex Mono"';
-    ctx.textAlign = 'left';
-    const metrics = ctx.measureText(text);
-    const paddingX = 10, paddingY = 6;
-    const w = metrics.width + paddingX * 2;
-    const h = 28;
-    ctx.fillStyle = 'rgba(255,255,255,0.95)';
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
-    ctx.fillRect(x, y, w, h);
-    ctx.strokeRect(x, y, w, h);
-    ctx.fillStyle = color;
-    ctx.fillText(text, x + paddingX, y + h - paddingY - 2);
-  }
+  
 
   public destroy() {
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
     }
     this.container.innerHTML = '';
+  }
+
+  // ---------- Arrow + label helpers (parity with Ch7.1) ----------
+  private enforceMinLength(x1:number,y1:number,x2:number,y2:number,minLen:number): [number, number] {
+    const dx = x2 - x1, dy = y2 - y1; const L = Math.hypot(dx, dy);
+    if (L >= minLen || L === 0) return [x2, y2];
+    const s = minLen / L; return [x1 + dx * s, y1 + dy * s];
+  }
+
+  private drawArrow(x1: number, y1: number, x2: number, y2: number, color: string, value: string, labelPos: 'above'|'below'|'left'|'right') {
+    const ctx = this.ctx;
+    [x2, y2] = this.enforceMinLength(x1, y1, x2, y2, 80);
+    const headlen = 15;
+    const angle = Math.atan2(y2 - y1, x2 - x1);
+
+    // Outline
+    ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 7;
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+
+    // Line
+    ctx.strokeStyle = color; ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+
+    // Head
+    ctx.fillStyle = color; ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(x2 - headlen * Math.cos(angle - Math.PI / 6), y2 - headlen * Math.sin(angle - Math.PI / 6));
+    ctx.lineTo(x2 - headlen * Math.cos(angle + Math.PI / 6), y2 - headlen * Math.sin(angle + Math.PI / 6));
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+
+    // Label placement
+    const offset = 20; let labelX = x2, labelY = y2;
+    if (labelPos === 'above') labelY -= offset;
+    if (labelPos === 'below') labelY += offset;
+    if (labelPos === 'left') labelX -= offset;
+    if (labelPos === 'right') labelX += offset;
+
+    ctx.font = '700 14px "IBM Plex Mono"'; ctx.textAlign = 'center';
+    const metrics = ctx.measureText(value); const padding = 8; const rectH = 28; const rectW = metrics.width + padding * 2;
+    let rectX = labelX - rectW / 2; let rectY = labelY - rectH / 2;
+    for (let i = 0; i < 5; i++) {
+      if (!this.intersectsAny(rectX, rectY, rectW, rectH)) break;
+      if (labelPos === 'above') rectY -= 24; if (labelPos === 'below') rectY += 24;
+      if (labelPos === 'left') rectX -= 24; if (labelPos === 'right') rectX += 24;
+    }
+    this.labelRects.push({x: rectX, y: rectY, w: rectW, h: rectH});
+
+    ctx.fillStyle = 'rgba(255,255,255,0.9)'; ctx.strokeStyle = color; ctx.lineWidth = 2;
+    ctx.fillRect(rectX, rectY, rectW, rectH); ctx.strokeRect(rectX, rectY, rectW, rectH);
+    ctx.fillStyle = color; ctx.font = '700 13px "IBM Plex Mono"';
+    ctx.fillText(value, rectX + rectW / 2, rectY + rectH / 2 + 4);
+  }
+
+  private intersectsAny(x: number, y: number, w: number, h: number): boolean {
+    return this.labelRects.some(r => !(x + w < r.x || r.x + r.w < x || y + h < r.y || r.y + r.h < y));
   }
 }
