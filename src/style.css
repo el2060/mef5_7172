@@ -253,6 +253,11 @@ body {
   min-height: 550px;
   background: var(--md-cloud);
   border-radius: var(--radius-lg);
+  transition: transform var(--t-fast) var(--ease);
+}
+
+.canvas-area:hover .canvas-container {
+  transform: scale(1.04);
 }
 
 /* Controls Panel */

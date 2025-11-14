@@ -3,6 +3,7 @@ export class Chapter71Simulator {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private animationId: number | null = null;
+  private labelRects: Array<{x:number;y:number;w:number;h:number}> = [];
   
   // Physics state
   private mass: number = 5; // kg
@@ -62,6 +63,9 @@ export class Chapter71Simulator {
     
     this.canvas.width = parent.clientWidth;
     this.canvas.height = parent.clientHeight;
+    // Re-center block when viewport changes
+    const blockSize = 140;
+    this.blockX = Math.max(100, this.canvas.width / 2 - blockSize / 2);
   }
 
   private render() {
@@ -428,12 +432,14 @@ export class Chapter71Simulator {
     const ctx = this.ctx;
     const width = this.canvas.width;
     const height = this.canvas.height;
+    // Reset label rects per frame for collision management
+    this.labelRects = [];
     
     // Clear canvas
     ctx.clearRect(0, 0, width, height);
     
     // Draw ground
-    const groundY = height * 0.65;
+    const groundY = height * 0.55; // raise ground to center the block visually
     ctx.fillStyle = this.surfaceType === 'rough' ? '#D3D3D3' : '#E5E5E5';
     ctx.fillRect(0, groundY, width, 4);
     
@@ -449,8 +455,8 @@ export class Chapter71Simulator {
       }
     }
     
-    // Update block position (simple animation)
-    this.blockX += this.blockVelocity * 0.1;
+  // Update block position (simple animation)
+  this.blockX += this.blockVelocity * 0.1;
     
     // Keep block in bounds
     const blockSize = 140;
@@ -477,8 +483,8 @@ export class Chapter71Simulator {
     ctx.textAlign = 'center';
     ctx.fillText(`${this.mass} kg`, this.blockX + blockSize / 2, blockY + blockSize / 2 + 7);
     
-    // Draw force arrows
-    this.drawForceArrows(this.blockX + blockSize / 2, blockY + blockSize / 2);
+  // Draw force arrows
+  this.drawForceArrows(this.blockX + blockSize / 2, blockY + blockSize / 2);
     
     // Draw info text
     ctx.fillStyle = '#383838';
@@ -499,34 +505,44 @@ export class Chapter71Simulator {
     // Applied force
     if (this.appliedForce > 0) {
       const scale = 3;
-      const endX = centerX + this.appliedForce * scale * Math.cos(angleRad);
-      const endY = centerY - this.appliedForce * scale * Math.sin(angleRad);
-      
-  this.drawArrow(ctx, centerX, centerY, endX, endY, '#21AD93', this.appliedForce + ' N @ ' + this.forceAngle + '°');
+      let endX = centerX + this.appliedForce * scale * Math.cos(angleRad);
+      let endY = centerY - this.appliedForce * scale * Math.sin(angleRad);
+      [endX, endY] = this.enforceMinLength(centerX, centerY, endX, endY, 80);
+      this.drawArrow(ctx, centerX, centerY, endX, endY, '#21AD93', this.appliedForce + ' N @ ' + this.forceAngle + '°', 'right');
     }
     
     // Friction force (if rough surface)
     if (this.surfaceType === 'rough' && this.frictionForce > 0) {
       const scale = 3;
       const direction = this.appliedForce * Math.cos(angleRad) > 0 ? -1 : 1;
-      const endX = centerX + direction * this.frictionForce * scale;
-      
-  this.drawArrow(ctx, centerX, centerY, endX, centerY, '#FF6E6C', 'Ff = ' + this.frictionForce.toFixed(1) + ' N');
+      let endX = centerX + direction * this.frictionForce * scale;
+      [endX] = this.enforceMinLength(centerX, centerY, endX, centerY, 80);
+      this.drawArrow(ctx, centerX, centerY, endX, centerY, '#FF6E6C', 'Ff = ' + this.frictionForce.toFixed(1) + ' N', 'left');
     }
     
     // Normal force
     const normalScale = 2.2;
-    const normalEndY = centerY - this.normalForce * normalScale;
-  this.drawArrow(ctx, centerX, centerY, centerX, normalEndY, '#007AFF', 'N = ' + this.normalForce.toFixed(1) + ' N');
+    let normalEndY = centerY - this.normalForce * normalScale;
+    ;[,, normalEndY] = [centerX, centerY, this.enforceMinLength(centerX, centerY, centerX, normalEndY, 90)[1]];
+    this.drawArrow(ctx, centerX, centerY, centerX, normalEndY, '#007AFF', 'N = ' + this.normalForce.toFixed(1) + ' N', 'above');
     
     // Weight
     const weightScale = 2.2;
     const weight = this.mass * 9.8;
-    const weightEndY = centerY + weight * weightScale;
-  this.drawArrow(ctx, centerX, centerY, centerX, weightEndY, '#FFE100', 'W = ' + weight.toFixed(1) + ' N');
+    let weightEndY = centerY + weight * weightScale;
+    ;[,, weightEndY] = [centerX, centerY, this.enforceMinLength(centerX, centerY, centerX, weightEndY, 90)[1]];
+    this.drawArrow(ctx, centerX, centerY, centerX, weightEndY, '#FFE100', 'W = ' + weight.toFixed(1) + ' N', 'below');
   }
 
-  private drawArrow(ctx: CanvasRenderingContext2D, x1: number, y1: number, x2: number, y2: number, color: string, value: string) {
+  private enforceMinLength(x1:number,y1:number,x2:number,y2:number,minLen:number): [number, number] {
+    const dx = x2 - x1, dy = y2 - y1;
+    const len = Math.hypot(dx, dy);
+    if (len >= minLen || len === 0) return [x2, y2];
+    const scale = minLen / len;
+    return [x1 + dx * scale, y1 + dy * scale];
+  }
+
+  private drawArrow(ctx: CanvasRenderingContext2D, x1: number, y1: number, x2: number, y2: number, color: string, value: string, labelPos: 'above'|'below'|'left'|'right') {
     const headlen = 15;
     const angle = Math.atan2(y2 - y1, x2 - x1);
     
@@ -558,34 +574,49 @@ export class Chapter71Simulator {
     ctx.fill();
     ctx.stroke();
     
-    // Calculate label position (offset from arrow)
-    const midX = (x1 + x2) / 2;
-    const midY = (y1 + y2) / 2;
-    const perpAngle = angle + Math.PI / 2;
-    const offset = 35;
-    const labelX = midX + Math.cos(perpAngle) * offset;
-    const labelY = midY + Math.sin(perpAngle) * offset;
-    
-    // Draw label background
+    // Calculate label position relative to arrow end, outside the block
+    const offset = 20;
+    let labelX = x2, labelY = y2;
+    if (labelPos === 'above') { labelY = y2 - offset; }
+    if (labelPos === 'below') { labelY = y2 + offset; }
+    if (labelPos === 'left')  { labelX = x2 - offset; }
+    if (labelPos === 'right') { labelX = x2 + offset; }
+
+    // Measure and adjust for collision
     ctx.font = '700 14px "IBM Plex Mono"';
     ctx.textAlign = 'center';
     const metrics = ctx.measureText(value);
     const padding = 8;
-    
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+    let rectW = metrics.width + padding * 2;
+    const rectH = 28;
+    let rectX = labelX - rectW / 2;
+    let rectY = labelY - rectH / 2;
+
+    // Collision avoidance: nudge outward along the axis of placement
+    for (let i = 0; i < 5; i++) {
+      if (!this.intersectsAny(rectX, rectY, rectW, rectH)) break;
+      if (labelPos === 'above') rectY -= 24;
+      if (labelPos === 'below') rectY += 24;
+      if (labelPos === 'left')  rectX -= 24;
+      if (labelPos === 'right') rectX += 24;
+    }
+    this.labelRects.push({x: rectX, y: rectY, w: rectW, h: rectH});
+
+    // Draw label background
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
     ctx.strokeStyle = color;
     ctx.lineWidth = 2;
-    const rectX = labelX - metrics.width / 2 - padding;
-    const rectY = labelY - 18;
-    const rectW = metrics.width + padding * 2;
-    const rectH = 28;
     ctx.fillRect(rectX, rectY, rectW, rectH);
     ctx.strokeRect(rectX, rectY, rectW, rectH);
     
     // Draw label text
     ctx.fillStyle = color;
     ctx.font = '700 13px "IBM Plex Mono"';
-    ctx.fillText(value, labelX, labelY - 2);
+    ctx.fillText(value, rectX + rectW / 2, rectY + rectH / 2 + 4);
+  }
+
+  private intersectsAny(x: number, y: number, w: number, h: number): boolean {
+    return this.labelRects.some(r => !(x + w < r.x || r.x + r.w < x || y + h < r.y || r.y + r.h < y));
   }
 
   public destroy() {
