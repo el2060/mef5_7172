@@ -44,6 +44,8 @@ export class Chapter72Simulator {
     
     // Attach event listeners
     this.attachEventListeners();
+  // Angle dial for incline
+  this.initAngleDial72();
     
     // Calculate initial values
     this.calculate();
@@ -72,93 +74,170 @@ export class Chapter72Simulator {
           </div>
           
           <div class="controls-panel">
-            <div class="control-section">
-              <h3>System Type</h3>
-              <div class="system-selector">
-                <div class="system-option selected" data-system="pulley">
-                  <h4>Block A + Hanging Block B</h4>
-                  <p>Pulley system with cable</p>
-                </div>
-                <div class="system-option" data-system="incline">
-                  <h4>Inclined Plane + Hanging Mass</h4>
-                  <p>Block on slope connected to hanging mass</p>
-                </div>
-                <div class="system-option" data-system="table">
-                  <h4>Two Blocks on Table</h4>
-                  <p>Connected blocks on rough surface</p>
-                </div>
-              </div>
-            </div>
-            
-            <div class="control-section">
-              <h3>Adjust Parameters</h3>
-              
-              <div class="slider-control">
-                <div class="slider-label">
-                  <span>Mass A (m₁)</span>
-                  <span class="slider-value" id="massA-value">5 kg</span>
-                </div>
-                <input type="range" id="massA-slider" min="1" max="20" value="5" step="1">
-              </div>
-              
-              <div class="slider-control">
-                <div class="slider-label">
-                  <span>Mass B (m₂)</span>
-                  <span class="slider-value" id="massB-value">3 kg</span>
-                </div>
-                <input type="range" id="massB-slider" min="1" max="20" value="3" step="1">
-              </div>
-              
-              <div class="slider-control" id="angle-control" style="display: none;">
-                <div class="slider-label">
-                  <span>Incline Angle (θ)</span>
-                  <span class="slider-value" id="incline-value">30°</span>
-                </div>
-                <input type="range" id="incline-slider" min="0" max="60" value="30" step="5">
-              </div>
-              
-              <div class="slider-control">
-                <div class="slider-label">
-                  <span>Friction (μ)</span>
-                  <span class="slider-value" id="friction72-value">0.20</span>
-                </div>
-                <input type="range" id="friction72-slider" min="0" max="1" value="0.2" step="0.05">
-              </div>
-            </div>
-            
-            <div class="control-section">
-              <h3>Predict Motion Direction</h3>
-              <p style="font-size: 0.875rem; opacity: 0.7; margin-bottom: 8px;">
-                Which way will the system accelerate?
-              </p>
-              <div class="direction-buttons">
-                <button class="direction-btn" data-direction="A-right-B-down">A → / B ↓</button>
-                <button class="direction-btn" data-direction="none">No Motion</button>
-                <button class="direction-btn" data-direction="A-left-B-up">A ← / B ↑</button>
-              </div>
-              <div id="feedback-container-72"></div>
-            </div>
-            
-            <div class="control-section">
-              <h3>System Results</h3>
-              <div class="stats-display">
-                <div class="stat-item">
-                  <span class="stat-label">Acceleration (a)</span>
-                  <span class="stat-value" id="accel72-display">0.00 m/s²</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-label">Tension (T)</span>
-                  <span class="stat-value" id="tension-display">0.00 N</span>
+            <details class="control-collapse" open>
+              <summary>System Type <span class="chev">▾</span></summary>
+              <div class="content">
+                <div class="system-selector">
+                  <div class="system-option selected" data-system="pulley">
+                    <h4>Block A + Hanging Block B</h4>
+                    <p>Pulley system with cable</p>
+                  </div>
+                  <div class="system-option" data-system="incline">
+                    <h4>Inclined Plane + Hanging Mass</h4>
+                    <p>Block on slope connected to hanging mass</p>
+                  </div>
+                  <div class="system-option" data-system="table">
+                    <h4>Two Blocks on Table</h4>
+                    <p>Connected blocks on rough surface</p>
+                  </div>
                 </div>
               </div>
-              <div class="feedback-box success" style="margin-top: 16px;">
-                <strong>Key Concept:</strong> Because the cable is light and inextensible, both blocks share the same acceleration magnitude.
+            </details>
+
+            <details class="control-collapse" open>
+              <summary>Adjust Parameters <span class="chev">▾</span></summary>
+              <div class="content">
+                <div class="slider-control">
+                  <div class="slider-label">
+                    <span>Mass A (m₁)</span>
+                    <span class="slider-value" id="massA-value">5 kg</span>
+                  </div>
+                  <input type="range" id="massA-slider" min="1" max="20" value="5" step="1">
+                </div>
+
+                <div class="slider-control">
+                  <div class="slider-label">
+                    <span>Mass B (m₂)</span>
+                    <span class="slider-value" id="massB-value">3 kg</span>
+                  </div>
+                  <input type="range" id="massB-slider" min="1" max="20" value="3" step="1">
+                </div>
+
+                <div id="angle-control" style="display: none;">
+                  <div class="angle-dial">
+                    <canvas id="incline-dial-72" width="120" height="120"></canvas>
+                    <div>
+                      <div class="angle-readout"><span id="incline-value">30°</span></div>
+                      <div class="slider-info">Drag the dial to set incline angle (0°–60°)</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="slider-control">
+                  <div class="slider-label">
+                    <span>Friction (μ)</span>
+                    <span class="slider-value" id="friction72-value">0.20</span>
+                  </div>
+                  <input type="range" id="friction72-slider" min="0" max="1" value="0.2" step="0.05">
+                </div>
               </div>
-            </div>
+            </details>
+
+            <details class="control-collapse" open>
+              <summary>Predict Motion Direction <span class="chev">▾</span></summary>
+              <div class="content">
+                <p style="font-size: 0.875rem; opacity: 0.7; margin-bottom: 8px;">
+                  Which way will the system accelerate?
+                </p>
+                <div class="direction-buttons">
+                  <button class="direction-btn" data-direction="A-right-B-down">A → / B ↓</button>
+                  <button class="direction-btn" data-direction="none">No Motion</button>
+                  <button class="direction-btn" data-direction="A-left-B-up">A ← / B ↑</button>
+                </div>
+                <div id="feedback-container-72"></div>
+              </div>
+            </details>
+
+            <details class="control-collapse" open>
+              <summary>System Results <span class="chev">▾</span></summary>
+              <div class="content">
+                <div class="stats-display">
+                  <div class="stat-item">
+                    <span class="stat-label">Acceleration (a)</span>
+                    <span class="stat-value" id="accel72-display">0.00 m/s²</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">Tension (T)</span>
+                    <span class="stat-value" id="tension-display">0.00 N</span>
+                  </div>
+                </div>
+                <div class="feedback-box success" style="margin-top: 16px;">
+                  <strong>Key Concept:</strong> Because the cable is light and inextensible, both blocks share the same acceleration magnitude.
+                </div>
+              </div>
+            </details>
           </div>
         </div>
       </div>
     `;
+  }
+
+  private initAngleDial72() {
+    const canvas = document.getElementById('incline-dial-72') as HTMLCanvasElement | null;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const drawDial = () => {
+      const w = canvas.width, h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+      const cx = w / 2, cy = h / 2, r = Math.min(w, h) / 2 - 10;
+      // Base circle
+      ctx.strokeStyle = '#E5E5E5';
+      ctx.lineWidth = 8;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.stroke();
+      // Limit arc (0..60°)
+      ctx.strokeStyle = '#AEDCF8';
+      ctx.lineWidth = 8;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, (60 * Math.PI) / 180, false);
+      ctx.stroke();
+      // Current angle arc
+      ctx.strokeStyle = '#007AFF';
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, (this.inclineAngle * Math.PI) / 180, false);
+      ctx.stroke();
+      // Handle
+      const a = (this.inclineAngle * Math.PI) / 180;
+      const hx = cx + r * Math.cos(a);
+      const hy = cy + r * Math.sin(a);
+      ctx.fillStyle = '#007AFF';
+      ctx.beginPath();
+      ctx.arc(hx, hy, 7, 0, Math.PI * 2);
+      ctx.fill();
+    };
+
+    const setAngleFromEvent = (ev: MouseEvent | TouchEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = (ev as TouchEvent).touches ? (ev as TouchEvent).touches[0].clientX : (ev as MouseEvent).clientX;
+      const clientY = (ev as TouchEvent).touches ? (ev as TouchEvent).touches[0].clientY : (ev as MouseEvent).clientY;
+      const x = clientX - rect.left - canvas.width / 2;
+      const y = clientY - rect.top - canvas.height / 2;
+      let ang = Math.atan2(y, x); // radians
+      if (ang < 0) ang += Math.PI * 2;
+      let deg = (ang * 180) / Math.PI;
+      // Clamp to 0..60
+      if (deg > 60 && deg < 300) deg = 60;
+      if (deg >= 300) deg = 0;
+      this.inclineAngle = Math.round(deg);
+      const angleVal = document.getElementById('incline-value');
+      if (angleVal) angleVal.textContent = `${this.inclineAngle}°`;
+      this.calculate();
+      this.clearPrediction();
+      drawDial();
+    };
+
+    let dragging = false;
+    canvas.addEventListener('mousedown', () => (dragging = true));
+    canvas.addEventListener('touchstart', () => (dragging = true));
+    window.addEventListener('mouseup', () => (dragging = false));
+    window.addEventListener('touchend', () => (dragging = false));
+    canvas.addEventListener('mousemove', (e) => dragging && setAngleFromEvent(e));
+    canvas.addEventListener('touchmove', (e) => { if (dragging) { e.preventDefault(); setAngleFromEvent(e); } }, { passive: false });
+
+    drawDial();
   }
 
   private attachEventListeners() {
@@ -381,100 +460,91 @@ export class Chapter72Simulator {
   }
 
   private drawPulleySystem(ctx: CanvasRenderingContext2D, width: number, height: number) {
-    const groundY = height * 0.6;
-    
-    // Draw ground
-    ctx.fillStyle = '#D3D3D3';
-    ctx.fillRect(0, groundY, width, height - groundY);
-    
-    // Draw pulley
+    const groundY = height * 0.62;
+
+    // Ground line
+    ctx.fillStyle = '#E5E5E5';
+    ctx.fillRect(0, groundY, width, 4);
+
+    // Pulley
     const pulleyX = width * 0.65;
-    const pulleyY = groundY - 80;
-    const pulleyRadius = 20;
-    
+    const pulleyY = groundY - 120;
+    const pulleyRadius = 28;
+
     ctx.fillStyle = '#383838';
     ctx.beginPath();
     ctx.arc(pulleyX, pulleyY, pulleyRadius, 0, Math.PI * 2);
     ctx.fill();
-    
     ctx.strokeStyle = '#888888';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.arc(pulleyX, pulleyY, pulleyRadius, 0, Math.PI * 2);
     ctx.stroke();
-    
-    // Draw Block A (on table)
-    const blockASize = 50;
-    const blockAX = pulleyX - 150;
+
+    // Block A (on table)
+    const blockASize = 90;
+    const blockAX = pulleyX - 210;
     const blockAY = groundY - blockASize;
-    
+
     ctx.fillStyle = '#007AFF';
     ctx.strokeStyle = '#005FA3';
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 4;
     ctx.fillRect(blockAX, blockAY, blockASize, blockASize);
     ctx.strokeRect(blockAX, blockAY, blockASize, blockASize);
-    
+    // Label A
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = '700 12px "IBM Plex Mono"';
+    ctx.font = '700 18px "IBM Plex Mono"';
     ctx.textAlign = 'center';
-    ctx.fillText(`A`, blockAX + blockASize / 2, blockAY + blockASize / 2 - 5);
-    ctx.fillText(`${this.massA}kg`, blockAX + blockASize / 2, blockAY + blockASize / 2 + 10);
-    
-    // Draw Block B (hanging)
-    const blockBSize = 50;
+    ctx.fillText(`A`, blockAX + blockASize / 2, blockAY + blockASize / 2 - 8);
+    ctx.fillText(`${this.massA} kg`, blockAX + blockASize / 2, blockAY + blockASize / 2 + 14);
+
+    // Block B (hanging)
+    const blockBSize = 90;
     const blockBX = pulleyX - blockBSize / 2;
-    const blockBY = pulleyY + pulleyRadius + 40;
-    
+    const blockBY = pulleyY + pulleyRadius + 60;
+
     ctx.fillStyle = '#21AD93';
     ctx.strokeStyle = '#1A8A75';
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 4;
     ctx.fillRect(blockBX, blockBY, blockBSize, blockBSize);
     ctx.strokeRect(blockBX, blockBY, blockBSize, blockBSize);
-    
     ctx.fillStyle = '#FFFFFF';
-    ctx.fillText(`B`, blockBX + blockBSize / 2, blockBY + blockBSize / 2 - 5);
-    ctx.fillText(`${this.massB}kg`, blockBX + blockBSize / 2, blockBY + blockBSize / 2 + 10);
-    
-    // Draw rope
+    ctx.font = '700 18px "IBM Plex Mono"';
+    ctx.fillText(`B`, blockBX + blockBSize / 2, blockBY + blockBSize / 2 - 8);
+    ctx.fillText(`${this.massB} kg`, blockBX + blockBSize / 2, blockBY + blockBSize / 2 + 14);
+
+    // Rope
     ctx.strokeStyle = this.acceleration !== 0 ? '#FF6E6C' : '#383838';
-    ctx.lineWidth = 3;
-    ctx.setLineDash([10, 5]);
+    ctx.lineWidth = 4;
+    ctx.setLineDash([12, 6]);
     ctx.lineDashOffset = -this.ropeOffset;
-    
     ctx.beginPath();
-    // From A to pulley
     ctx.moveTo(blockAX + blockASize, blockAY + blockASize / 2);
     ctx.lineTo(pulleyX - pulleyRadius, pulleyY);
-    // Around pulley
     ctx.arc(pulleyX, pulleyY, pulleyRadius, Math.PI, Math.PI / 2, true);
-    // Down to B
     ctx.lineTo(pulleyX, blockBY);
     ctx.stroke();
-    
     ctx.setLineDash([]);
-    
-    // Draw labels
-    ctx.fillStyle = '#383838';
-    ctx.font = '600 11px "IBM Plex Mono"';
-    ctx.textAlign = 'center';
-    ctx.fillText(`T = ${this.tension.toFixed(1)} N`, pulleyX - 70, pulleyY - 30);
+
+    // Tension badge
+    this.drawBadge(ctx, pulleyX - 90, pulleyY - 50, `T = ${this.tension.toFixed(1)} N`, '#FF6E6C');
   }
 
   private drawInclineSystem(ctx: CanvasRenderingContext2D, width: number, height: number) {
-    const groundY = height * 0.7;
-    
-    // Draw ground
-    ctx.fillStyle = '#D3D3D3';
-    ctx.fillRect(0, groundY, width, height - groundY);
-    
-    // Draw incline
+    const groundY = height * 0.72;
+
+    // Ground line
+    ctx.fillStyle = '#E5E5E5';
+    ctx.fillRect(0, groundY, width, 4);
+
+    // Incline
     const angleRad = (this.inclineAngle * Math.PI) / 180;
-    const inclineLength = 200;
+    const inclineLength = 280;
     const inclineX = 100;
     const inclineY = groundY;
     const inclineEndX = inclineX + inclineLength * Math.cos(angleRad);
     const inclineEndY = inclineY - inclineLength * Math.sin(angleRad);
-    
+
     ctx.fillStyle = '#A0A0A0';
     ctx.beginPath();
     ctx.moveTo(inclineX, inclineY);
@@ -482,119 +552,130 @@ export class Chapter72Simulator {
     ctx.lineTo(inclineEndX, groundY);
     ctx.closePath();
     ctx.fill();
-    
+
     ctx.strokeStyle = '#383838';
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 4;
     ctx.beginPath();
     ctx.moveTo(inclineX, inclineY);
     ctx.lineTo(inclineEndX, inclineEndY);
     ctx.stroke();
-    
-    // Draw Block A on incline
-    const blockASize = 40;
-    const blockADist = inclineLength * 0.4;
+
+    // Block A on incline
+    const blockASize = 70;
+    const blockADist = inclineLength * 0.45;
     const blockAX = inclineX + blockADist * Math.cos(angleRad) - blockASize / 2;
     const blockAY = inclineY - blockADist * Math.sin(angleRad) - blockASize / 2;
-    
+
     ctx.save();
     ctx.translate(blockAX + blockASize / 2, blockAY + blockASize / 2);
     ctx.rotate(-angleRad);
-    
     ctx.fillStyle = '#007AFF';
     ctx.strokeStyle = '#005FA3';
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 4;
     ctx.fillRect(-blockASize / 2, -blockASize / 2, blockASize, blockASize);
     ctx.strokeRect(-blockASize / 2, -blockASize / 2, blockASize, blockASize);
-    
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = '700 11px "IBM Plex Mono"';
+    ctx.font = '700 16px "IBM Plex Mono"';
     ctx.textAlign = 'center';
-    ctx.fillText(`A ${this.massA}kg`, 0, 3);
-    
+    ctx.fillText(`A`, 0, -4);
+    ctx.fillText(`${this.massA} kg`, 0, 18);
     ctx.restore();
-    
-    // Draw pulley at top
-    const pulleyX = inclineEndX + 40;
+
+    // Pulley at top
+    const pulleyX = inclineEndX + 50;
     const pulleyY = inclineEndY;
-    const pulleyRadius = 15;
-    
+    const pulleyRadius = 22;
     ctx.fillStyle = '#383838';
     ctx.beginPath();
     ctx.arc(pulleyX, pulleyY, pulleyRadius, 0, Math.PI * 2);
     ctx.fill();
-    
-    // Draw Block B hanging
-    const blockBSize = 40;
+
+    // Block B hanging
+    const blockBSize = 70;
     const blockBX = pulleyX - blockBSize / 2;
-    const blockBY = pulleyY + pulleyRadius + 30;
-    
+    const blockBY = pulleyY + pulleyRadius + 50;
     ctx.fillStyle = '#21AD93';
     ctx.strokeStyle = '#1A8A75';
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 4;
     ctx.fillRect(blockBX, blockBY, blockBSize, blockBSize);
     ctx.strokeRect(blockBX, blockBY, blockBSize, blockBSize);
-    
     ctx.fillStyle = '#FFFFFF';
-    ctx.fillText(`B ${this.massB}kg`, blockBX + blockBSize / 2, blockBY + blockBSize / 2 + 3);
-    
-    // Draw rope
+    ctx.font = '700 16px "IBM Plex Mono"';
+    ctx.fillText(`B`, blockBX + blockBSize / 2, blockBY + blockBSize / 2 - 6);
+    ctx.fillText(`${this.massB} kg`, blockBX + blockBSize / 2, blockBY + blockBSize / 2 + 16);
+
+    // Rope
     ctx.strokeStyle = this.acceleration !== 0 ? '#FF6E6C' : '#383838';
-    ctx.lineWidth = 2;
-    ctx.setLineDash([8, 4]);
-    
+    ctx.lineWidth = 4;
+    ctx.setLineDash([10, 5]);
     ctx.beginPath();
     ctx.moveTo(blockAX + blockASize / 2, blockAY);
     ctx.lineTo(pulleyX, pulleyY - pulleyRadius);
     ctx.arc(pulleyX, pulleyY, pulleyRadius, -Math.PI / 2, 0);
     ctx.lineTo(pulleyX + pulleyRadius, blockBY);
     ctx.stroke();
-    
     ctx.setLineDash([]);
   }
 
   private drawTableSystem(ctx: CanvasRenderingContext2D, width: number, height: number) {
-    const groundY = height * 0.6;
-    
-    // Draw ground
-    ctx.fillStyle = '#D3D3D3';
-    ctx.fillRect(0, groundY, width, height - groundY);
-    
-    // Draw both blocks on table
-    const blockSize = 50;
-    const blockAX = width * 0.3;
-    const blockBX = width * 0.6;
+    const groundY = height * 0.62;
+
+    // Ground line
+    ctx.fillStyle = '#E5E5E5';
+    ctx.fillRect(0, groundY, width, 4);
+
+    // Blocks on table
+    const blockSize = 90;
+    const blockAX = width * 0.28;
+    const blockBX = width * 0.62;
     const blockY = groundY - blockSize;
-    
-    // Block A
+
+    // A
     ctx.fillStyle = '#007AFF';
     ctx.strokeStyle = '#005FA3';
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 4;
     ctx.fillRect(blockAX, blockY, blockSize, blockSize);
     ctx.strokeRect(blockAX, blockY, blockSize, blockSize);
-    
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = '700 12px "IBM Plex Mono"';
+    ctx.font = '700 18px "IBM Plex Mono"';
     ctx.textAlign = 'center';
-    ctx.fillText(`A ${this.massA}kg`, blockAX + blockSize / 2, blockY + blockSize / 2 + 3);
-    
-    // Block B
+    ctx.fillText(`A`, blockAX + blockSize / 2, blockY + blockSize / 2 - 8);
+    ctx.fillText(`${this.massA} kg`, blockAX + blockSize / 2, blockY + blockSize / 2 + 14);
+
+    // B
     ctx.fillStyle = '#21AD93';
     ctx.strokeStyle = '#1A8A75';
     ctx.fillRect(blockBX, blockY, blockSize, blockSize);
     ctx.strokeRect(blockBX, blockY, blockSize, blockSize);
-    
     ctx.fillStyle = '#FFFFFF';
-    ctx.fillText(`B ${this.massB}kg`, blockBX + blockSize / 2, blockY + blockSize / 2 + 3);
-    
-    // Draw connection rope
+    ctx.fillText(`B`, blockBX + blockSize / 2, blockY + blockSize / 2 - 8);
+    ctx.fillText(`${this.massB} kg`, blockBX + blockSize / 2, blockY + blockSize / 2 + 14);
+
+    // Rope
     ctx.strokeStyle = '#383838';
-    ctx.lineWidth = 3;
-    ctx.setLineDash([8, 4]);
+    ctx.lineWidth = 4;
+    ctx.setLineDash([10, 5]);
     ctx.beginPath();
     ctx.moveTo(blockAX + blockSize, blockY + blockSize / 2);
     ctx.lineTo(blockBX, blockY + blockSize / 2);
     ctx.stroke();
     ctx.setLineDash([]);
+  }
+
+  private drawBadge(ctx: CanvasRenderingContext2D, x: number, y: number, text: string, color: string) {
+    ctx.font = '700 14px "IBM Plex Mono"';
+    ctx.textAlign = 'left';
+    const metrics = ctx.measureText(text);
+    const paddingX = 10, paddingY = 6;
+    const w = metrics.width + paddingX * 2;
+    const h = 28;
+    ctx.fillStyle = 'rgba(255,255,255,0.95)';
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.fillRect(x, y, w, h);
+    ctx.strokeRect(x, y, w, h);
+    ctx.fillStyle = color;
+    ctx.fillText(text, x + paddingX, y + h - paddingY - 2);
   }
 
   public destroy() {

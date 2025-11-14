@@ -46,6 +46,8 @@ export class Chapter71Simulator {
     
     // Attach event listeners
     this.attachEventListeners();
+  // Angle dial
+  this.initAngleDial71();
     
     // Calculate initial values
     this.calculate();
@@ -74,84 +76,160 @@ export class Chapter71Simulator {
           </div>
           
           <div class="controls-panel">
-            <div class="control-section">
-              <h3>Surface Type</h3>
-              <div class="surface-toggle">
-                <button class="toggle-btn" data-surface="smooth">Smooth</button>
-                <button class="toggle-btn active" data-surface="rough">Rough</button>
-              </div>
-            </div>
-            
-            <div class="control-section">
-              <h3>Adjust Forces</h3>
-              
-              <div class="slider-control">
-                <div class="slider-label">
-                  <span>Applied Force (F)</span>
-                  <span class="slider-value" id="force-value">20 N</span>
-                </div>
-                <input type="range" id="force-slider" min="0" max="50" value="20" step="1">
-                <div class="slider-info">Horizontal pushing force</div>
-              </div>
-              
-              <div class="slider-control">
-                <div class="slider-label">
-                  <span>Force Angle (θ)</span>
-                  <span class="slider-value" id="angle-value">0°</span>
-                </div>
-                <input type="range" id="angle-slider" min="0" max="60" value="0" step="5">
-                <div class="slider-info">0° = horizontal, 60° = upward</div>
-              </div>
-              
-              <div class="slider-control" id="friction-control">
-                <div class="slider-label">
-                  <span>Friction (μ)</span>
-                  <span class="slider-value" id="friction-value">0.20</span>
-                </div>
-                <input type="range" id="friction-slider" min="0" max="1" value="0.2" step="0.05">
-                <div class="slider-info">Coefficient of kinetic friction</div>
-              </div>
-              
-              <div class="slider-control">
-                <div class="slider-label">
-                  <span>Mass (m)</span>
-                  <span class="slider-value" id="mass-value">5 kg</span>
-                </div>
-                <input type="range" id="mass-slider" min="1" max="20" value="5" step="1">
-                <div class="slider-info">Mass of the block</div>
-              </div>
-            </div>
-            
-            <div class="control-section">
-              <h3>Predict Direction</h3>
-              <p style="font-size: 0.875rem; opacity: 0.7; margin-bottom: 8px;">
-                Which way will the block accelerate?
-              </p>
-              <div class="direction-buttons">
-                <button class="direction-btn" data-direction="left">← Left</button>
-                <button class="direction-btn" data-direction="none">No Motion</button>
-                <button class="direction-btn" data-direction="right">Right →</button>
-              </div>
-              <div id="feedback-container"></div>
-            </div>
-            
-            <div class="control-section">
-              <h3>Results</h3>
-              <div class="stats-display">
-                <div class="stat-item">
-                  <span class="stat-label">Acceleration</span>
-                  <span class="stat-value" id="acceleration-display">0.00 m/s²</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-label">Net Force</span>
-                  <span class="stat-value" id="netforce-display">0.00 N</span>
+            <details class="control-collapse" open>
+              <summary>Surface Type <span class="chev">▾</span></summary>
+              <div class="content">
+                <div class="surface-toggle">
+                  <button class="toggle-btn" data-surface="smooth">Smooth</button>
+                  <button class="toggle-btn active" data-surface="rough">Rough</button>
                 </div>
               </div>
-            </div>
+            </details>
+
+            <details class="control-collapse" open>
+              <summary>Adjust Forces <span class="chev">▾</span></summary>
+              <div class="content">
+                <div class="angle-dial">
+                  <canvas id="angle-dial-71" width="120" height="120"></canvas>
+                  <div>
+                    <div class="angle-readout"><span id="angle-value">0°</span></div>
+                    <div class="slider-info">Drag the dial to set force angle (0°–60°)</div>
+                  </div>
+                </div>
+
+                <div class="slider-control">
+                  <div class="slider-label">
+                    <span>Applied Force (F)</span>
+                    <span class="slider-value" id="force-value">20 N</span>
+                  </div>
+                  <input type="range" id="force-slider" min="0" max="50" value="20" step="1">
+                  <div class="slider-info">Horizontal pushing force</div>
+                </div>
+
+                <div class="slider-control" id="friction-control">
+                  <div class="slider-label">
+                    <span>Friction (μ)</span>
+                    <span class="slider-value" id="friction-value">0.20</span>
+                  </div>
+                  <input type="range" id="friction-slider" min="0" max="1" value="0.2" step="0.05">
+                  <div class="slider-info">Coefficient of kinetic friction</div>
+                </div>
+
+                <div class="slider-control">
+                  <div class="slider-label">
+                    <span>Mass (m)</span>
+                    <span class="slider-value" id="mass-value">5 kg</span>
+                  </div>
+                  <input type="range" id="mass-slider" min="1" max="20" value="5" step="1">
+                  <div class="slider-info">Mass of the block</div>
+                </div>
+              </div>
+            </details>
+
+            <details class="control-collapse" open>
+              <summary>Predict Direction <span class="chev">▾</span></summary>
+              <div class="content">
+                <p style="font-size: 0.875rem; opacity: 0.7; margin-bottom: 8px;">
+                  Which way will the block accelerate?
+                </p>
+                <div class="direction-buttons">
+                  <button class="direction-btn" data-direction="left">← Left</button>
+                  <button class="direction-btn" data-direction="none">No Motion</button>
+                  <button class="direction-btn" data-direction="right">Right →</button>
+                </div>
+                <div id="feedback-container"></div>
+              </div>
+            </details>
+
+            <details class="control-collapse" open>
+              <summary>Results <span class="chev">▾</span></summary>
+              <div class="content">
+                <div class="stats-display">
+                  <div class="stat-item">
+                    <span class="stat-label">Acceleration</span>
+                    <span class="stat-value" id="acceleration-display">0.00 m/s²</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">Net Force</span>
+                    <span class="stat-value" id="netforce-display">0.00 N</span>
+                  </div>
+                </div>
+              </div>
+            </details>
           </div>
         </div>
       </div>
     `;
+  }
+
+  private initAngleDial71() {
+    const canvas = document.getElementById('angle-dial-71') as HTMLCanvasElement | null;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const drawDial = () => {
+      const w = canvas.width, h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+      const cx = w / 2, cy = h / 2, r = Math.min(w, h) / 2 - 10;
+      // Base circle
+      ctx.strokeStyle = '#E5E5E5';
+      ctx.lineWidth = 8;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.stroke();
+      // Limit arc (0..60°)
+      ctx.strokeStyle = '#AEDCF8';
+      ctx.lineWidth = 8;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, (60 * Math.PI) / 180, false);
+      ctx.stroke();
+      // Current angle arc
+      ctx.strokeStyle = '#007AFF';
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, (this.forceAngle * Math.PI) / 180, false);
+      ctx.stroke();
+      // Handle
+      const a = (this.forceAngle * Math.PI) / 180;
+      const hx = cx + r * Math.cos(a);
+      const hy = cy + r * Math.sin(a);
+      ctx.fillStyle = '#007AFF';
+      ctx.beginPath();
+      ctx.arc(hx, hy, 7, 0, Math.PI * 2);
+      ctx.fill();
+    };
+
+    const setAngleFromEvent = (ev: MouseEvent | TouchEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = (ev as TouchEvent).touches ? (ev as TouchEvent).touches[0].clientX : (ev as MouseEvent).clientX;
+      const clientY = (ev as TouchEvent).touches ? (ev as TouchEvent).touches[0].clientY : (ev as MouseEvent).clientY;
+      const x = clientX - rect.left - canvas.width / 2;
+      const y = clientY - rect.top - canvas.height / 2;
+      let ang = Math.atan2(y, x); // radians
+      if (ang < 0) ang += Math.PI * 2;
+      let deg = (ang * 180) / Math.PI;
+      // Clamp to 0..60
+      if (deg > 60 && deg < 300) deg = 60;
+      if (deg >= 300) deg = 0;
+      this.forceAngle = Math.round(deg);
+      const angleSlider = document.getElementById('angle-slider') as HTMLInputElement | null;
+      if (angleSlider) angleSlider.value = String(this.forceAngle);
+      const angleVal = document.getElementById('angle-value');
+      if (angleVal) angleVal.textContent = `${this.forceAngle}°`;
+      this.calculate();
+      this.clearPrediction();
+      drawDial();
+    };
+
+    let dragging = false;
+    canvas.addEventListener('mousedown', () => (dragging = true));
+    canvas.addEventListener('touchstart', () => (dragging = true));
+    window.addEventListener('mouseup', () => (dragging = false));
+    window.addEventListener('touchend', () => (dragging = false));
+    canvas.addEventListener('mousemove', (e) => dragging && setAngleFromEvent(e));
+    canvas.addEventListener('touchmove', (e) => { if (dragging) { e.preventDefault(); setAngleFromEvent(e); } }, { passive: false });
+
+    drawDial();
   }
 
   private attachEventListeners() {

@@ -274,7 +274,6 @@ body {
   margin-bottom: var(--space-2);
   color: var(--md-text);
   text-transform: uppercase;
-  font-size: 1rem;
   letter-spacing: 0.5px;
   opacity: 0.9;
 }
@@ -282,6 +281,56 @@ body {
 /* Slider Control */
 .slider-control {
   margin-bottom: var(--space-3);
+}
+
+/* Collapsible sections */
+details.control-collapse {
+  background: var(--md-cloud);
+  border-radius: var(--radius-lg);
+  padding: 0;
+  border: 1px solid var(--md-border-subtle);
+}
+details.control-collapse + details.control-collapse { margin-top: var(--space-3); }
+details.control-collapse[open] { box-shadow: var(--shadow-card); }
+
+details.control-collapse > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: var(--space-3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 700;
+  font-size: var(--fs-label);
+  text-transform: uppercase;
+}
+details.control-collapse > summary::-webkit-details-marker { display: none; }
+details.control-collapse > summary .chev {
+  transition: transform var(--t-fast) var(--ease);
+}
+details.control-collapse[open] > summary .chev { transform: rotate(180deg); }
+
+details.control-collapse .content { padding: 0 var(--space-3) var(--space-3); }
+
+/* Angle Dial */
+.angle-dial {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-2);
+  align-items: center;
+  margin-bottom: var(--space-3);
+}
+.angle-dial canvas {
+  width: 120px;
+  height: 120px;
+  background: #fff;
+  border: 1px solid var(--md-border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+.angle-dial .angle-readout {
+  font-weight: 700;
+  font-size: var(--fs-h3);
 }
 
 .slider-control:last-child {
